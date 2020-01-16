@@ -117,6 +117,8 @@ module.exports = class Project {
     if (args.hasOwnProperty('injectMetrics')) {
       this.injectMetrics = args.injectMetrics;
     }
+
+    this.capabilitiesReady = false;
   }
 
 
@@ -260,11 +262,9 @@ module.exports = class Project {
       throw new ProjectError('LOCK_FAILURE', this.name);
     }
     try {
-      // const currentSettings = await this.readSettingsFile();
-      // if (currentSettings.internalPort && currentSettings.internalPort != this.ports.internalPort) {
-      //   if (this.ports) this.ports.internalPort = currentSettings.internalPort;
-      // }
-      await fs.writeJson(infFile, this, { spaces: '  ' });
+      const {capabilitiesReady, ...updatedProject } = this
+      console.log(`££££££££££  Anout to write info file`);
+      await fs.writeJson(infFile, updatedProject, { spaces: '  ' });
     } catch(err) {
       log.error(err);
     } finally {

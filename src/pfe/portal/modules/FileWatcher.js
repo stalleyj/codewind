@@ -168,7 +168,9 @@ module.exports = class FileWatcher {
         }
 
         case "projectCapabilitiesReady" : {
-          await this.handleFWProjectEvent('projectCapabilitiesReady', fwProject);
+          await this.handleCapabilitiesUpdated(fwProject);
+          console.log(`##############    PROJECT CAPABILITIES READY`);
+          console.dir(fwProject);
           break;
         }
 
@@ -407,6 +409,27 @@ module.exports = class FileWatcher {
   }
 
   /**
+   * Function to specifically projectCapabilitiesReady
+   * projectSettingsChanged events
+   */
+  async handleCapabilitiesUpdated(fwProject) {
+    try {
+      const projectID = fwProject.projectID;
+      this.user.projectList.retrieveProject(projectID);
+      let projectUpdate = {
+        projectID: projectID,
+        capabilitiesReady: true
+      };
+      await this.user.projectList.updateProject(projectUpdate);
+      this.user.uiSocket.emit('projectChanged', projectUpdate);
+      console.log(`SENDING MESSAGE TO THE UI`);
+      console.dir(projectUpdate);
+    } catch (err) {
+      log.error(err);
+    }
+  }
+
+  /**
    * Function to specifically handle fw newProjectAdded and
    * projectSettingsChanged events
    */
@@ -523,6 +546,7 @@ module.exports = class FileWatcher {
         buildStatus: 'unknown',
         appStatus: 'unknown',
         state: Project.STATES.closed,
+        capabilitiesReady: false,
         detailedAppStatus: undefined
       }
       // Set the container key to '' as the container has stopped.
@@ -537,6 +561,8 @@ module.exports = class FileWatcher {
     // remove fields which are not required by the UI
     const { logStreams, ...projectInfoForUI } = updatedProject;
     this.user.uiSocket.emit('projectClosed', {...projectInfoForUI, status: fwProject.status});
+    console.log(`###########   PROJECT CLOSED SUCCESSFULLY`);
+    console.dir(projectInfoForUI)
     log.debug('project ' + fwProject.projectID + ' successfully closed');
   }
 
